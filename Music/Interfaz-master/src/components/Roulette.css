@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap');
+
+/* Restauración del fondo al BODY para que cubra toda la página */
+body {
+  font-family: 'Poppins', sans-serif;
+  /* Fondo degradado azul/morado */
+  background: linear-gradient(to bottom right, #1e3a8a, #5b21b6);
+  color: white;
+  margin: 0;
+  padding: 0;
+}
+
+.roulette-page {
+  text-align: center;
+  /* Eliminado min-height: 100vh para que no se "alargue" */
+  padding: 20px;
+}
+
+h1 {
+    font-size: 2.5em;
+    font-weight: 900;
+    color: #ffd700;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+    margin-bottom: 20px;
+}
+
+.wheel-wrapper {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 30px auto;
+}
+
+.wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 10px rgba(0,0,0,0.6));
+}
+
+.arrow {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-bottom: 25px solid orange;
+  z-index: 10;
+}
+
+/* --- BOTÓN CENTRAL (SPIN-BTN) MEJORADO --- */
+.spin-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px; /* Tamaño fijo */
+  height: 100px; /* Tamaño fijo */
+  border-radius: 50%;
+  border: 5px solid #e0e0e0; /* Borde más grueso y claro */
+  /* Degradado con más profundidad (morado/rosa/naranja) */
+  background: linear-gradient(135deg, #a855f7, #ec4899, #f59e0b); 
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.4em; /* Texto más grande */
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  z-index: 10;
+  /* Sombra exterior e interior */
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(255,255,255,0.4);
+  transition: all 0.2s ease-in-out;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+}
+
+/* Estado al pasar el ratón (Hover) */
+.spin-btn:hover:not(:disabled) {
+  transform: translate(-50%, -50%) scale(1.08); 
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(255,255,255,0.5);
+}
+
+/* Estado al hacer clic (Active) */
+.spin-btn:active:not(:disabled) {
+    transform: translate(-50%, -50%) scale(0.98); 
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(255,255,255,0.2);
+}
+
+/* Estado Deshabilitado / ESPERA */
+.spin-btn:disabled {
+  /* Fondo más oscuro y apagado para el estado de espera */
+  background: linear-gradient(135deg, #444444, #303030); 
+  border-color: #777;
+  color: #bbb; /* Texto más suave */
+  cursor: not-allowed;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%) scale(1); 
+  opacity: 0.8; 
+  font-size: 1.2em; /* Letra un poco más pequeña para "ESPERA" */
+}
+/* --- FIN BOTÓN CENTRAL MEJORADO --- */
+
+
+.cooldown {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.result {
+  margin-top: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 10px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 12px;
+  border: 2px solid;
+}
