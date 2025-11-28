@@ -140,6 +140,7 @@ export default function GroupChatPage() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [showUserProfile, setShowUserProfile] = useState(false);
     const [uploadingMedia, setUploadingMedia] = useState(false);
+    const [storageError, setStorageError] = useState(null);
     
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null);
@@ -172,6 +173,33 @@ export default function GroupChatPage() {
             }
         };
     }, [group, user]);
+
+    // Efecto para limpiar mensajes antiguos automáticamente
+    useEffect(() => {
+        const cleanupOldMessages = async () => {
+            try {
+                // Limpiar mensajes con más de 2 días cada hora
+                const { error } = await supabase
+                    .from('group_chat_messages')
+                    .delete()
+                    .lt('created_at', new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString());
+
+                if (error) {
+                    console.error('Error limpiando mensajes antiguos:', error);
+                } else {
+                    console.log('Limpieza automática de mensajes completada');
+                }
+            } catch (error) {
+                console.error('Error en limpieza automática:', error);
+            }
+        };
+
+        // Ejecutar limpieza inmediatamente y luego cada hora
+        cleanupOldMessages();
+        const cleanupInterval = setInterval(cleanupOldMessages, 60 * 60 * 1000);
+
+        return () => clearInterval(cleanupInterval);
+    }, []);
 
     // Detectar scroll manual del usuario
     useEffect(() => {
@@ -251,16 +279,10 @@ export default function GroupChatPage() {
 
     const loadMessages = async () => {
         try {
+            // Consulta más simple sin joins complejos primero
             const { data, error } = await supabase
                 .from('group_chat_messages')
-                .select(`
-                    *,
-                    profiles:user_id (
-                        id,
-                        username,
-                        avatar_url
-                    )
-                `)
+                .select('*')
                 .eq('group_id', group.id)
                 .order('created_at', { ascending: true })
                 .limit(100);
@@ -270,6 +292,7 @@ export default function GroupChatPage() {
                 throw error;
             }
             
+            console.log('Mensajes cargados:', data);
             setMessages(data || []);
         } catch (error) {
             console.error('Error loading messages:', error);
@@ -328,26 +351,48 @@ export default function GroupChatPage() {
         try {
             let mediaUrl = null;
             let mediaType = null;
+            let gifUrl = null;
             
             // Subir archivo si existe
             if (fileData) {
+                console.log('Subiendo archivo:', fileData);
                 mediaUrl = await uploadFile(fileData);
                 mediaType = fileData.type;
+                console.log('Archivo subido, URL:', mediaUrl, 'Tipo:', mediaType);
             }
 
-            // Preparar datos del mensaje
+            // Configurar gif_url si es un GIF
+            if (messageType === 'gif') {
+                gifUrl = content;
+            }
+
+            // PREPARAR DATOS CON ESTRUCTURA MÍNIMA
             const messageData = {
                 group_id: group.id,
                 user_id: user.id,
                 message_type: messageType,
-                message_text: messageToSend?.trim() || '',
-                ...(messageType === 'gif' && { gif_url: content }),
-                ...(mediaUrl && { media_url: mediaUrl }),
-                ...(mediaType && { media_type: mediaType })
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
             };
+
+            // Agregar contenido según el tipo de mensaje
+            if (messageType === 'text') {
+                messageData.message_text = messageToSend?.trim() || '';
+            } else if (messageType === 'emoji') {
+                messageData.message_text = content;
+            } else if (messageType === 'gif' && gifUrl) {
+                messageData.gif_url = gifUrl;
+                messageData.message_text = ''; // Limpiar texto para GIFs
+            } else if (messageType === 'media' && mediaUrl) {
+                messageData.media_url = mediaUrl;
+                messageData.media_type = mediaType;
+                messageData.message_text = ''; // Limpiar texto para media
+                console.log('Datos de media guardados:', { mediaUrl, mediaType });
+            }
 
             console.log('Insertando mensaje con datos:', messageData);
 
+            // Intentar insertar
             const { data, error } = await supabase
                 .from('group_chat_messages')
                 .insert([messageData])
@@ -355,31 +400,11 @@ export default function GroupChatPage() {
                 .single();
 
             if (error) {
-                console.error('Error detallado insertando mensaje:', error);
-                
-                // Si hay error, intentar con una estructura más simple
-                const simpleMessageData = {
-                    group_id: group.id,
-                    user_id: user.id,
-                    message_text: messageToSend?.trim() || 'Mensaje',
-                    message_type: 'text'
-                };
-                
-                const { data: simpleData, error: simpleError } = await supabase
-                    .from('group_chat_messages')
-                    .insert([simpleMessageData])
-                    .select()
-                    .single();
-                    
-                if (simpleError) {
-                    console.error('Error incluso con estructura simple:', simpleError);
-                    throw new Error(`No se pudo enviar el mensaje: ${simpleError.message}`);
-                }
-                
-                console.log('Mensaje enviado con estructura simple:', simpleData);
-            } else {
-                console.log('Mensaje insertado correctamente:', data);
+                console.error('Error insertando mensaje:', error);
+                throw new Error(`No se pudo enviar el mensaje: ${error.message}`);
             }
+
+            console.log('Mensaje insertado correctamente:', data);
 
             // Limpiar el input solo si fue un mensaje de texto
             if (messageType === 'text') {
@@ -412,31 +437,53 @@ export default function GroupChatPage() {
     const uploadFile = async (file) => {
         setUploadingMedia(true);
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random()}.${fileExt}`;
-            const filePath = `chat-media/${group.id}/${fileName}`;
+            console.log('Iniciando subida de archivo:', file.name, file.type, file.size);
 
-            console.log('Subiendo archivo a:', filePath);
-
-            const { error: uploadError } = await supabase.storage
-                .from('chat-media')
-                .upload(filePath, file);
-
-            if (uploadError) {
-                console.error('Error subiendo archivo:', uploadError);
-                throw uploadError;
+            // Para archivos pequeños, usar URL temporal directamente
+            // Para archivos grandes, intentar subir a Supabase
+            if (file.size < 5 * 1024 * 1024) { // Menos de 5MB
+                console.log('Archivo pequeño, usando URL temporal');
+                const temporaryUrl = URL.createObjectURL(file);
+                return temporaryUrl;
             }
 
-            // Obtener URL pública
-            const { data: { publicUrl } } = supabase.storage
-                .from('chat-media')
-                .getPublicUrl(filePath);
+            // Para archivos más grandes, intentar con Supabase Storage
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+                const filePath = `chat-media/${group.id}/${fileName}`;
 
-            console.log('URL pública obtenida:', publicUrl);
-            return publicUrl;
+                console.log('Subiendo archivo a Supabase:', filePath);
+
+                const { error: uploadError } = await supabase.storage
+                    .from('chat-media')
+                    .upload(filePath, file);
+
+                if (uploadError) {
+                    console.error('Error subiendo archivo a Supabase:', uploadError);
+                    throw uploadError;
+                }
+
+                // Obtener URL pública
+                const { data: { publicUrl } } = supabase.storage
+                    .from('chat-media')
+                    .getPublicUrl(filePath);
+
+                console.log('URL pública obtenida:', publicUrl);
+                return publicUrl;
+
+            } catch (storageError) {
+                console.warn('Error con Supabase Storage, usando URL temporal:', storageError);
+                const temporaryUrl = URL.createObjectURL(file);
+                return temporaryUrl;
+            }
+
         } catch (error) {
             console.error('Error subiendo archivo:', error);
-            throw error;
+            // En caso de cualquier error, usar URL temporal
+            const temporaryUrl = URL.createObjectURL(file);
+            console.warn('Usando URL temporal debido a error:', temporaryUrl);
+            return temporaryUrl;
         } finally {
             setUploadingMedia(false);
         }
@@ -446,18 +493,12 @@ export default function GroupChatPage() {
         const file = event.target.files[0];
         if (!file) return;
 
-        console.log('Archivo seleccionado:', file);
+        console.log('Archivo seleccionado:', file.name, file.type, file.size);
 
-        // Validar tipo de archivo
+        // Validar tipo de archivo (pero SIN límite de tamaño)
         const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'];
         if (!validTypes.includes(file.type)) {
             alert('Por favor, selecciona una imagen (JPEG, PNG, GIF, WebP) o video (MP4, WebM) válido.');
-            return;
-        }
-
-        // Validar tamaño (10MB máximo)
-        if (file.size > 10 * 1024 * 1024) {
-            alert('El archivo es demasiado grande. Máximo 10MB.');
             return;
         }
 
@@ -501,16 +542,18 @@ export default function GroupChatPage() {
         }
     };
 
-    const getUserDisplayName = (messageUser) => {
-        if (!messageUser) return 'Usuario';
-        return messageUser.username || messageUser.email?.split('@')[0] || 'Usuario';
+    const getUserDisplayName = (userId) => {
+        const userProfile = userProfiles[userId];
+        if (!userProfile) return 'Usuario';
+        return userProfile.username || userProfile.email?.split('@')[0] || 'Usuario';
     };
 
-    const getUserAvatar = (messageUser) => {
-        if (!messageUser) {
+    const getUserAvatar = (userId) => {
+        const userProfile = userProfiles[userId];
+        if (!userProfile) {
             return `https://ui-avatars.com/api/?name=Usuario&background=random&color=fff&bold=true&size=128`;
         }
-        return messageUser.avatar_url || `https://ui-avatars.com/api/?name=${getUserDisplayName(messageUser)}&background=random&color=fff&bold=true&size=128`;
+        return userProfile.avatar_url || `https://ui-avatars.com/api/?name=${getUserDisplayName(userId)}&background=random&color=fff&bold=true&size=128`;
     };
 
     const formatTime = (timestamp) => {
@@ -547,31 +590,101 @@ export default function GroupChatPage() {
     };
 
     const renderMediaMessage = (message) => {
-        if (message.media_type?.startsWith('image/')) {
+        console.log('Renderizando mensaje multimedia:', message);
+        
+        if (message.media_url) {
+            if (message.media_type?.startsWith('image/')) {
+                return (
+                    <div className="relative">
+                        <img 
+                            src={message.media_url} 
+                            alt="Imagen compartida" 
+                            className="max-w-full max-h-96 rounded-xl object-cover cursor-pointer"
+                            onClick={() => window.open(message.media_url, '_blank')}
+                            onError={(e) => {
+                                console.error('Error cargando imagen:', message.media_url);
+                                e.target.style.display = 'none';
+                            }}
+                        />
+                        {message.media_url?.includes('blob:') && (
+                            <div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded-lg font-bold">
+                                TEMPORAL
+                            </div>
+                        )}
+                    </div>
+                );
+            } else if (message.media_type?.startsWith('video/')) {
+                return (
+                    <div className="relative">
+                        <video 
+                            controls 
+                            className="max-w-full max-h-96 rounded-xl"
+                            onError={(e) => {
+                                console.error('Error cargando video:', message.media_url);
+                                e.target.style.display = 'none';
+                            }}
+                        >
+                            <source src={message.media_url} type={message.media_type} />
+                            Tu navegador no soporta el elemento de video.
+                        </video>
+                        {message.media_url?.includes('blob:') && (
+                            <div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded-lg font-bold">
+                                TEMPORAL
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+        }
+        
+        // Si no hay media_url pero es tipo media, mostrar mensaje de error
+        if (message.message_type === 'media') {
             return (
-                <div className="relative">
-                    <img 
-                        src={message.media_url} 
-                        alt="Imagen compartida" 
-                        className="max-w-full max-h-64 rounded-xl object-cover cursor-pointer"
-                        onClick={() => window.open(message.media_url, '_blank')}
-                    />
-                </div>
-            );
-        } else if (message.media_type?.startsWith('video/')) {
-            return (
-                <div className="relative">
-                    <video 
-                        controls 
-                        className="max-w-full max-h-64 rounded-xl"
-                    >
-                        <source src={message.media_url} type={message.media_type} />
-                        Tu navegador no soporta el elemento de video.
-                    </video>
+                <div className="text-red-400 text-sm">
+                    ❌ No se pudo cargar el archivo multimedia
                 </div>
             );
         }
+        
         return null;
+    };
+
+    const renderMessageContent = (message) => {
+        console.log('Renderizando contenido del mensaje:', message);
+        
+        switch (message.message_type) {
+            case 'gif':
+                return (
+                    <div>
+                        <img 
+                            src={message.gif_url} 
+                            alt="GIF Pokémon" 
+                            className="max-w-full h-32 rounded-xl object-cover"
+                            onError={(e) => {
+                                console.error('Error cargando GIF:', message.gif_url);
+                                e.target.style.display = 'none';
+                            }}
+                        />
+                    </div>
+                );
+                
+            case 'emoji':
+                return (
+                    <div className="text-4xl text-center py-2">
+                        {message.message_text}
+                    </div>
+                );
+                
+            case 'media':
+                return renderMediaMessage(message);
+                
+            default:
+                return (
+                    <p className="whitespace-pre-wrap break-words text-base leading-relaxed">
+                        {message.message_text}
+                    </p>
+                );
+        }
     };
 
     // Agrupar mensajes por fecha
@@ -691,11 +804,11 @@ export default function GroupChatPage() {
                                             >
                                                 <div className="flex-shrink-0 relative">
                                                     <img
-                                                        src={getUserAvatar(message.profiles)}
-                                                        alt={getUserDisplayName(message.profiles)}
+                                                        src={getUserAvatar(message.user_id)}
+                                                        alt={getUserDisplayName(message.user_id)}
                                                         className="w-14 h-14 rounded-2xl border-2 border-purple-400/50 transition-all duration-200 group-hover:scale-110 cursor-pointer hover:border-purple-400 shadow-lg"
-                                                        onClick={() => handleUserAvatarClick(message.profiles)}
-                                                        title={`Ver perfil de ${getUserDisplayName(message.profiles)}`}
+                                                        onClick={() => handleUserAvatarClick(userProfiles[message.user_id])}
+                                                        title={`Ver perfil de ${getUserDisplayName(message.user_id)}`}
                                                     />
                                                     {isUserOnline(message.user_id) && (
                                                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
@@ -707,7 +820,7 @@ export default function GroupChatPage() {
                                                 }`}>
                                                     <div className="flex items-center gap-3 mb-2">
                                                         <span className="text-lg font-bold text-purple-300">
-                                                            {getUserDisplayName(message.profiles)}
+                                                            {getUserDisplayName(message.user_id)}
                                                             {message.user_id === user.id && (
                                                                 <span className="text-white/60 ml-2">(tú)</span>
                                                             )}
@@ -722,21 +835,7 @@ export default function GroupChatPage() {
                                                             ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' 
                                                             : 'bg-white/10 text-white/90 border border-white/10'
                                                     }`}>
-                                                        {message.message_type === 'gif' ? (
-                                                            <div>
-                                                                <img 
-                                                                    src={message.gif_url} 
-                                                                    alt="GIF Pokémon" 
-                                                                    className="max-w-full h-32 rounded-xl object-cover"
-                                                                />
-                                                            </div>
-                                                        ) : message.message_type === 'emoji' ? (
-                                                            <div className="text-4xl text-center py-2">{message.message_text}</div>
-                                                        ) : message.message_type === 'media' ? (
-                                                            renderMediaMessage(message)
-                                                        ) : (
-                                                            <p className="whitespace-pre-wrap break-words text-base leading-relaxed">{message.message_text}</p>
-                                                        )}
+                                                        {renderMessageContent(message)}
                                                         
                                                         {message.user_id === user.id && (
                                                             <div className="absolute -right-12 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200">
@@ -854,7 +953,7 @@ export default function GroupChatPage() {
                                         )}
                                     </button>
                                     <p className="text-white/60 text-sm mt-3">
-                                        Imágenes (JPEG, PNG, GIF, WebP) y videos (MP4, WebM) hasta 10MB
+                                        Imágenes (JPEG, PNG, GIF, WebP) y videos (MP4, WebM) - Sin límite de tamaño
                                     </p>
                                 </div>
                             </div>

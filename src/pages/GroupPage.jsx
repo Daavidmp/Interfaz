@@ -413,14 +413,14 @@ export default function GroupPage() {
 
     // --- Renderizado Principal ---
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-950 to-fuchsia-950 p-6 text-white">
+        <div className="min-h-screen bg-gradient-to-br from-purple-950 to-fuchsia-950 p-4 md:p-6 text-white">
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-4xl font-extrabold mb-8 text-pink-400">Gestión de Grupos</h1>
+                <h1 className="text-3xl md:text-4xl font-extrabold mb-6 md:mb-8 text-pink-400 text-center md:text-left">Gestión de Grupos</h1>
                 
-                {/* Navegación por pestañas */}
-                <div className="flex border-b border-white/20 mb-8">
+                {/* Navegación por pestañas - Mejorada para móvil */}
+                <div className="flex flex-col md:flex-row border-b border-white/20 mb-6 md:mb-8 overflow-x-auto">
                     <button
-                        className={`py-3 px-6 font-medium transition-colors ${
+                        className={`py-3 px-4 md:px-6 font-medium transition-colors whitespace-nowrap ${
                             activeTab === 'myGroups' 
                                 ? 'text-pink-400 border-b-2 border-pink-400' 
                                 : 'text-white/70 hover:text-white'
@@ -430,7 +430,7 @@ export default function GroupPage() {
                         Mis Grupos ({myGroups.length})
                     </button>
                     <button
-                        className={`py-3 px-6 font-medium transition-colors ${
+                        className={`py-3 px-4 md:px-6 font-medium transition-colors whitespace-nowrap ${
                             activeTab === 'search' 
                                 ? 'text-pink-400 border-b-2 border-pink-400' 
                                 : 'text-white/70 hover:text-white'
@@ -440,7 +440,7 @@ export default function GroupPage() {
                         Buscar Grupos ({availableGroups.length})
                     </button>
                     <button
-                        className={`py-3 px-6 font-medium transition-colors ${
+                        className={`py-3 px-4 md:px-6 font-medium transition-colors whitespace-nowrap ${
                             activeTab === 'create' 
                                 ? 'text-pink-400 border-b-2 border-pink-400' 
                                 : 'text-white/70 hover:text-white'
@@ -455,11 +455,11 @@ export default function GroupPage() {
                 <div className="tab-content">
                     {/* Pestaña: Mis Grupos */}
                     {activeTab === 'myGroups' && (
-                        <div className="bg-white/10 p-6 rounded-xl shadow-lg">
-                            <h2 className="text-2xl font-bold mb-4 text-purple-300">Mis Grupos</h2>
+                        <div className="bg-white/10 p-4 md:p-6 rounded-xl shadow-lg">
+                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-purple-300">Mis Grupos</h2>
                             
                             {myGroups.length === 0 ? (
-                                <div className="text-center py-8">
+                                <div className="text-center py-6 md:py-8">
                                     <p className="text-white/70 mb-4">No estás en ningún grupo todavía.</p>
                                     <button 
                                         onClick={() => setActiveTab('search')}
@@ -476,10 +476,10 @@ export default function GroupPage() {
                                         const isCreator = isGroupCreator(group);
                                         
                                         return (
-                                            <div key={group.id} className="bg-white/10 p-5 rounded-xl shadow-lg flex justify-between items-center transition duration-300 hover:bg-white/20">
-                                                <div className="flex items-center space-x-4">
-                                                    <div>
-                                                        <div className="text-xl font-bold flex items-center gap-2">
+                                            <div key={group.id} className="bg-white/10 p-4 md:p-5 rounded-xl shadow-lg transition duration-300 hover:bg-white/20">
+                                                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+                                                    <div className="flex-1">
+                                                        <div className="text-lg md:text-xl font-bold flex items-center gap-2 flex-wrap">
                                                             {group.name}
                                                             {hasPassword && (
                                                                 <span className="text-yellow-400 text-sm">🔒</span>
@@ -498,33 +498,33 @@ export default function GroupPage() {
                                                             )}
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    {isCreator ? (
-                                                        // Botón ELIMINAR para el creador
+                                                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                                                        {isCreator ? (
+                                                            // Botón ELIMINAR para el creador
+                                                            <button 
+                                                                onClick={() => prepareDeleteGroup(group)}
+                                                                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 md:px-4 rounded-lg transition duration-300 shadow-md text-sm md:text-base"
+                                                                title="Eliminar grupo permanentemente"
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        ) : (
+                                                            // Botón SALIR para miembros
+                                                            <button 
+                                                                onClick={() => prepareLeaveGroup(group)}
+                                                                className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-3 md:px-4 rounded-lg transition duration-300 shadow-md text-sm md:text-base"
+                                                                title="Salir del grupo"
+                                                            >
+                                                                Salir
+                                                            </button>
+                                                        )}
                                                         <button 
-                                                            onClick={() => prepareDeleteGroup(group)}
-                                                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 shadow-md"
-                                                            title="Eliminar grupo permanentemente"
+                                                            onClick={() => handleSelectGroup(group)}
+                                                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 md:px-4 rounded-lg transition duration-300 shadow-md text-sm md:text-base"
                                                         >
-                                                            Eliminar
+                                                            Entrar
                                                         </button>
-                                                    ) : (
-                                                        // Botón SALIR para miembros
-                                                        <button 
-                                                            onClick={() => prepareLeaveGroup(group)}
-                                                            className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 shadow-md"
-                                                            title="Salir del grupo"
-                                                        >
-                                                            Salir
-                                                        </button>
-                                                    )}
-                                                    <button 
-                                                        onClick={() => handleSelectGroup(group)}
-                                                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 shadow-md"
-                                                    >
-                                                        Entrar
-                                                    </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
@@ -536,11 +536,11 @@ export default function GroupPage() {
 
                     {/* Pestaña: Buscar Grupos */}
                     {activeTab === 'search' && (
-                        <div className="bg-white/10 p-6 rounded-xl shadow-lg">
-                            <h2 className="text-2xl font-bold mb-4 text-purple-300">Buscar Grupos</h2>
+                        <div className="bg-white/10 p-4 md:p-6 rounded-xl shadow-lg">
+                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-purple-300">Buscar Grupos</h2>
                             
                             {/* Barra de búsqueda */}
-                            <div className="mb-6">
+                            <div className="mb-4 md:mb-6">
                                 <input
                                     type="text"
                                     value={searchTerm}
@@ -551,7 +551,7 @@ export default function GroupPage() {
                             </div>
                             
                             {availableGroups.length === 0 ? (
-                                <div className="text-center py-8">
+                                <div className="text-center py-6 md:py-8">
                                     <p className="text-white/70 mb-4">No hay grupos disponibles para unirte.</p>
                                     <button 
                                         onClick={() => setActiveTab('create')}
@@ -571,10 +571,10 @@ export default function GroupPage() {
                                             const hasPassword = !!group.password;
                                             
                                             return (
-                                                <div key={group.id} className="bg-white/10 p-5 rounded-xl shadow-lg flex justify-between items-center transition duration-300 hover:bg-white/20">
-                                                    <div className="flex items-center space-x-4">
-                                                        <div>
-                                                            <div className="text-xl font-bold flex items-center gap-2">
+                                                <div key={group.id} className="bg-white/10 p-4 md:p-5 rounded-xl shadow-lg transition duration-300 hover:bg-white/20">
+                                                    <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+                                                        <div className="flex-1">
+                                                            <div className="text-lg md:text-xl font-bold flex items-center gap-2">
                                                                 {group.name}
                                                                 {hasPassword && (
                                                                     <span className="text-yellow-400 text-sm">🔒</span>
@@ -587,13 +587,15 @@ export default function GroupPage() {
                                                                 )}
                                                             </div>
                                                         </div>
+                                                        <div className="w-full md:w-auto">
+                                                            <button 
+                                                                onClick={() => prepareJoinGroup(group)}
+                                                                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 md:px-4 rounded-lg transition duration-300 shadow-md w-full md:w-auto text-sm md:text-base"
+                                                            >
+                                                                Unirse
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <button 
-                                                        onClick={() => prepareJoinGroup(group)}
-                                                        className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 shadow-md"
-                                                    >
-                                                        Unirse
-                                                    </button>
                                                 </div>
                                             );
                                         })}
@@ -604,8 +606,8 @@ export default function GroupPage() {
 
                     {/* Pestaña: Crear Grupo */}
                     {activeTab === 'create' && (
-                        <div className="bg-white/10 p-6 rounded-xl shadow-lg">
-                            <h2 className="text-2xl font-bold mb-4 text-purple-300">Crear Nuevo Grupo</h2>
+                        <div className="bg-white/10 p-4 md:p-6 rounded-xl shadow-lg">
+                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-purple-300">Crear Nuevo Grupo</h2>
                             <div className="space-y-4">
                                 <input
                                     type="text"
@@ -614,7 +616,7 @@ export default function GroupPage() {
                                     placeholder="Nombre del nuevo grupo"
                                     className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-pink-400"
                                 />
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4">
                                     <input
                                         type="password"
                                         value={password}
@@ -632,7 +634,7 @@ export default function GroupPage() {
                                 </div>
                                 <button
                                     onClick={createGroup}
-                                    className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
                                     disabled={!groupName.trim() || !password || !confirmPassword}
                                 >
                                     Crear Grupo
@@ -645,8 +647,8 @@ export default function GroupPage() {
                 {/* Modal para unirse a grupo con contraseña */}
                 {selectedGroup && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white/20 backdrop-blur-lg p-6 rounded-xl shadow-lg max-w-md w-full">
-                            <h3 className="text-2xl font-bold mb-4 text-pink-300">
+                        <div className="bg-white/20 backdrop-blur-lg p-4 md:p-6 rounded-xl shadow-lg max-w-md w-full">
+                            <h3 className="text-xl md:text-2xl font-bold mb-4 text-pink-300">
                                 Unirse a {selectedGroup.name}
                             </h3>
                             <p className="text-white/80 mb-4">Este grupo está protegido con contraseña</p>
@@ -662,7 +664,7 @@ export default function GroupPage() {
                                     }
                                 }}
                             />
-                            <div className="flex space-x-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <button
                                     onClick={() => joinGroup(selectedGroup.id, joinPassword)}
                                     className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition duration-300 disabled:opacity-50"
@@ -684,8 +686,8 @@ export default function GroupPage() {
                 {/* Modal para ELIMINAR grupo (solo creador) */}
                 {groupToDelete && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white/20 backdrop-blur-lg p-6 rounded-xl shadow-lg max-w-md w-full">
-                            <h3 className="text-2xl font-bold mb-4 text-red-400">
+                        <div className="bg-white/20 backdrop-blur-lg p-4 md:p-6 rounded-xl shadow-lg max-w-md w-full">
+                            <h3 className="text-xl md:text-2xl font-bold mb-4 text-red-400">
                                 Eliminar Grupo
                             </h3>
                             <p className="text-white/80 mb-4">
@@ -695,7 +697,7 @@ export default function GroupPage() {
                             <p className="text-white/70 mb-2">
                                 Para confirmar, escribe exactamente: 
                             </p>
-                            <p className="text-red-300 font-mono mb-4 bg-black/30 p-2 rounded">
+                            <p className="text-red-300 font-mono mb-4 bg-black/30 p-2 rounded text-sm md:text-base">
                                 eliminar {groupToDelete.name}
                             </p>
                             <input
@@ -710,7 +712,7 @@ export default function GroupPage() {
                                     }
                                 }}
                             />
-                            <div className="flex space-x-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <button
                                     onClick={deleteGroup}
                                     className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition duration-300 disabled:opacity-50"
@@ -733,8 +735,8 @@ export default function GroupPage() {
                 {/* Modal para SALIR del grupo (miembros) */}
                 {groupToLeave && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white/20 backdrop-blur-lg p-6 rounded-xl shadow-lg max-w-md w-full">
-                            <h3 className="text-2xl font-bold mb-4 text-orange-400">
+                        <div className="bg-white/20 backdrop-blur-lg p-4 md:p-6 rounded-xl shadow-lg max-w-md w-full">
+                            <h3 className="text-xl md:text-2xl font-bold mb-4 text-orange-400">
                                 Salir del Grupo
                             </h3>
                             <p className="text-white/80 mb-4">
@@ -744,7 +746,7 @@ export default function GroupPage() {
                             <p className="text-white/70 mb-2">
                                 Para confirmar, escribe exactamente: 
                             </p>
-                            <p className="text-orange-300 font-mono mb-4 bg-black/30 p-2 rounded">
+                            <p className="text-orange-300 font-mono mb-4 bg-black/30 p-2 rounded text-sm md:text-base">
                                 salir de {groupToLeave.name}
                             </p>
                             <input
@@ -759,7 +761,7 @@ export default function GroupPage() {
                                     }
                                 }}
                             />
-                            <div className="flex space-x-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <button
                                     onClick={leaveGroup}
                                     className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-lg transition duration-300 disabled:opacity-50"
