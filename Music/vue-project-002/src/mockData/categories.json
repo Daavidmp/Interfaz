@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "categoryTitle": "Actualidad",
+    "bgColor": "blue",
+    "articlesId": 1001
+  },
+
+  {
+    "id": 2,
+    "categoryTitle": "Sucesos",
+    "bgColor": "green",
+    "articlesId": 1002
+  },
+
+  {
+    "id": 3,
+    "categoryTitle": "Cultura",
+    "bgColor": "yellow",
+    "articlesId": 1003
+  },
+
+  {
+    "id": 4,
+    "categoryTitle": "Desportes",
+    "bgColor": "red",
+    "articlesId": 1004
+  }
+]

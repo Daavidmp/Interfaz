@@ -1,0 +1,142 @@
+[
+  {
+    "articlesId": 1001,
+    "articles": [
+      {
+        "id": 87,
+        "title": "Curso de Desarrollo Web",
+        "description": "Contenido introductorio para aprender desde cero.",
+        "img": {
+          "size": "720x480",
+          "textColor": "a14fed",
+          "backColor": "12d4aa"
+        }
+      },
+      {
+        "id": 14,
+        "title": "Guía de Diseño Responsivo",
+        "description": "Cómo adaptar tus proyectos a cualquier dispositivo.",
+        "img": {
+          "size": "640x360",
+          "textColor": "ff45b2",
+          "backColor": "0087ff"
+        }
+      },
+      {
+        "id": 93,
+        "title": "Fundamentos de Programación",
+        "description": "Principios básicos para empezar a codificar.",
+        "img": {
+          "size": "800x500",
+          "textColor": "ffee4a",
+          "backColor": "44ff7d"
+        }
+      }
+    ]
+  },
+  {
+    "articlesId": 1002,
+    "articles": [
+      {
+        "id": 51,
+        "title": "Introducción a Interfaces",
+        "description": "Aprende a crear interfaces modernas y útiles.",
+        "img": {
+          "size": "780x420",
+          "textColor": "d72056",
+          "backColor": "35ffb6"
+        }
+      },
+      {
+        "id": 62,
+        "title": "Tipografías y Estilo",
+        "description": "Cómo elegir fuentes profesionales.",
+        "img": {
+          "size": "700x420",
+          "textColor": "8b52ff",
+          "backColor": "ffd933"
+        }
+      },
+      {
+        "id": 39,
+        "title": "Lógica de Scripts",
+        "description": "Conceptos esenciales para automatizar tareas.",
+        "img": {
+          "size": "900x450",
+          "textColor": "3effe4",
+          "backColor": "1f6bff"
+        }
+      }
+    ]
+  },
+  {
+    "articlesId": 1003,
+    "articles": [
+      {
+        "id": 27,
+        "title": "Edición Visual",
+        "description": "Herramientas para mejorar la apariencia de tus proyectos.",
+        "img": {
+          "size": "650x350",
+          "textColor": "ff6a33",
+          "backColor": "00b985"
+        }
+      },
+      {
+        "id": 72,
+        "title": "Componentes CSS",
+        "description": "Crea estructuras reutilizables en tus diseños.",
+        "img": {
+          "size": "760x380",
+          "textColor": "ffa743",
+          "backColor": "0a8be3"
+        }
+      },
+      {
+        "id": 48,
+        "title": "Eventos y Funciones",
+        "description": "Aprende a controlar la interacción del usuario.",
+        "img": {
+          "size": "810x440",
+          "textColor": "d630b1",
+          "backColor": "52efc4"
+        }
+      }
+    ]
+  },
+  {
+    "articlesId": 1004,
+    "articles": [
+      {
+        "id": 66,
+        "title": "HTML Avanzado",
+        "description": "Estructura documentos con mayor precisión.",
+        "img": {
+          "size": "700x500",
+          "textColor": "6c5ce7",
+          "backColor": "ffcb6e"
+        }
+      },
+      {
+        "id": 29,
+        "title": "Animaciones CSS",
+        "description": "Agrega movimiento y fluidez a tus interfaces.",
+        "img": {
+          "size": "750x450",
+          "textColor": "e843e0",
+          "backColor": "00cec2"
+        }
+      },
+      {
+        "id": 84,
+        "title": "JS Interactivo",
+        "description": "Crea experiencias dinámicas para tus usuarios.",
+        "img": {
+          "size": "820x460",
+          "textColor": "fff6a4",
+          "backColor": "78b9ff"
+        }
+      }
+    ]
+  }
+]
