@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeriesBox - Inicio</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/series.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">SeriesBox</div>
+            <ul class="nav-links">
+                <li><a href="home.html" class="active">Inicio</a></li>
+                <li><a href="search.html">Buscar</a></li>
+                <li><a href="top-rated.html">Top Rated</a></li>
+                <li><a href="profile.html">Mi Perfil</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <button class="btn btn-secondary" id="logoutBtn">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Bienvenido a SeriesBox</h1>
+            <p>Descubre, valora y comenta las mejores series y anime. Encuentra tu próxima aventura épica.</p>
+            <div class="hero-buttons">
+                <a href="top-rated.html" class="btn btn-primary">Ver Top Rated</a>
+                <a href="search.html" class="btn btn-secondary">Explorar Todas</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Series Section -->
+    <section id="popular">
+        <div class="container">
+            <h2 class="section-title">Series Populares</h2>
+            <div class="series-grid" id="popularSeries">
+                <!-- Popular series will be populated by JavaScript -->
+                <div class="loading" id="popularLoading">
+                    Cargando series populares...
+                </div>
+            </div>
+            <div class="section-footer">
+                <a href="search.html" class="btn btn-secondary">Ver más series</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recently Added Section -->
+    <section id="recent" class="top-rated">
+        <div class="container">
+            <h2 class="section-title">Agregadas Recientemente</h2>
+            <div class="series-grid" id="recentSeries">
+                <!-- Recent series will be populated by JavaScript -->
+                <div class="loading" id="recentLoading">
+                    Cargando series recientes...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="logo">SeriesBox</div>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p class="copyright">© 2023 SeriesBox. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS EN ORDEN CORRECTO -->
+    <script src="scripts/api-service.js"></script>
+    <script src="scripts/series.js"></script>
+    <script src="scripts/auth.js"></script>
+    
+    // Versión ULTRA SIMPLE - reemplaza solo el script
+<script>
+    // Configuración
+    const BACKEND_URL = 'http://localhost:8080/api';
+    const SERIES_PER_SECTION = 5;
+    
+    // Función para hacer peticiones HTTP
+    async function fetchFromBackend(endpoint, options = {}) {
+        const url = `${BACKEND_URL}${endpoint}`;
+        console.log(`🌐 Petición a: ${url}`);
+        
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return await response.json();
+            
+        } catch (error) {
+            console.error(`❌ Error en ${url}:`, error.message);
+            throw error;
+        }
+    }
+    
+    // Función principal
+    document.addEventListener('DOMContentLoaded', async function() {
+        console.log('🏠 Home - Cargando desde PostgreSQL');
+        
+        // Mostrar estado de carga
+        updateLoadingState('popularSeries', 'Cargando series populares...');
+        updateLoadingState('recentSeries', 'Cargando series recientes...');
+        
+        try {
+            // 1. Verificar conexión con Spring Boot
+            console.log('🔌 Probando conexión...');
+            let isConnected = false;
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/series/test`);
+                isConnected = response.ok;
+                if (isConnected) {
+                    const text = await response.text();
+                    console.log('✅ Spring Boot:', text);
+                }
+            } catch (error) {
+                console.error('❌ Spring Boot no disponible:', error.message);
+            }
+            
+            if (!isConnected) {
+                showFallbackMessage('Spring Boot no disponible');
+                showFallbackData();
+                return;
+            }
+            
+            // 2. Obtener series de PostgreSQL
+            console.log('📡 Obteniendo series desde la base de datos...');
+            let seriesFromDB = [];
+            
+            try {
+                seriesFromDB = await fetchFromBackend('/series');
+                console.log(`📊 Series en BD: ${seriesFromDB.length}`);
+                
+                if (!Array.isArray(seriesFromDB) || seriesFromDB.length === 0) {
+                    showFallbackMessage('La base de datos está vacía');
+                    showInstructions();
+                    showFallbackData();
+                    return;
+                }
+                
+            } catch (error) {
+                console.error('❌ Error obteniendo series:', error);
+                showFallbackMessage('Error al obtener series');
+                showFallbackData();
+                return;
+            }
+            
+            // 3. Convertir al formato del frontend
+            const formattedSeries = seriesFromDB.map(item => ({
+                id: item.idSerie || item.id_serie || item.id || 0,
+                title: item.titulo || item.title || 'Sin título',
+                rating: parseFloat(item.ratingPromedio || item.rating_promedio || item.rating || 3.5),
+                year: item.anyoLanzamiento || item.anyo_lanzamiento || item.year || 2023,
+                episodes: item.episodios || item.episodes || 0,
+                status: formatStatus(item.estado || item.status),
+                poster: item.posterUrl || item.poster_url || item.poster || getDefaultPoster(),
+                synopsis: item.sinopsis || 'Sin sinopsis disponible',
+                isRealData: true
+            }));
+            
+            console.log(`✅ ${formattedSeries.length} series procesadas`);
+            
+            // 4. Preparar las 5 series para cada sección
+            
+            // Series Populares: 5 con mejor rating
+            const popularSeries = [...formattedSeries]
+                .sort((a, b) => b.rating - a.rating)
+                .slice(0, SERIES_PER_SECTION);
+            
+            // Series Recientes: 5 más recientes (por año descendente)
+            const recentSeries = [...formattedSeries]
+                .sort((a, b) => b.year - a.year)
+                .slice(0, SERIES_PER_SECTION);
+            
+            console.log(`📈 Populares: ${popularSeries.length} series`);
+            console.log(`🆕 Recientes: ${recentSeries.length} series`);
+            
+            // 5. Mostrar en la página
+            displaySeries('popularSeries', popularSeries, 'Series Populares');
+            displaySeries('recentSeries', recentSeries, 'Series Recientes');
+            
+            // Mostrar mensaje de éxito
+            showSuccess(`${formattedSeries.length} series cargadas desde PostgreSQL`);
+            
+        } catch (error) {
+            console.error('💥 Error general:', error);
+            showFallbackMessage('Error inesperado');
+            showFallbackData();
+        }
+    });
+    
+    // FUNCIONES AUXILIARES
+    
+    function formatStatus(status) {
+        if (!status) return 'Desconocido';
+        if (status === 'En emision') return 'En emisión';
+        if (status === 'Proximamente') return 'Próximamente';
+        return status;
+    }
+    
+    function getDefaultPoster() {
+        const posters = [
+            'https://cdn.myanimelist.net/images/anime/1015/138006.jpg',
+            'https://cdn.myanimelist.net/images/anime/1286/99889.jpg',
+            'https://cdn.myanimelist.net/images/anime/1806/126216.jpg'
+        ];
+        return posters[Math.floor(Math.random() * posters.length)];
+    }
+    
+    function updateLoadingState(containerId, message) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        // Limpiar contenido anterior
+        container.innerHTML = '';
+        
+        // Crear elemento loading con tu CSS
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading';
+        loadingDiv.style.cssText = 'grid-column: 1 / -1; text-align: center;';
+        loadingDiv.textContent = message;
+        
+        container.appendChild(loadingDiv);
+    }
+    
+    function displaySeries(containerId, series, title) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        // Limpiar container
+        container.innerHTML = '';
+        
+        if (!Array.isArray(series) || series.length === 0) {
+            // Usar tu CSS para no-data
+            const noDataDiv = document.createElement('div');
+            noDataDiv.className = 'no-data';
+            noDataDiv.style.cssText = 'grid-column: 1 / -1;';
+            noDataDiv.innerHTML = `
+                <i class="fas fa-tv"></i>
+                <p>No hay ${title.toLowerCase()}</p>
+            `;
+            container.appendChild(noDataDiv);
+            return;
+        }
+        
+        // Mostrar cada serie
+        series.forEach(item => {
+            const card = createSeriesCard(item);
+            container.appendChild(card);
+        });
+        
+        console.log(`✅ ${series.length} series mostradas en ${title}`);
+    }
+    
+    function createSeriesCard(item) {
+        const card = document.createElement('div');
+        card.className = 'series-card';
+        
+        // Añadir borde sutil para datos reales (sin romper el CSS)
+        if (item.isRealData) {
+            card.style.boxShadow = '0 0 0 1px #28a745';
+        }
+        
+        // Determinar clase de estado según tu CSS
+        let statusClass = 'status-proximamente';
+        if (item.status === 'Finalizado') statusClass = 'status-finalizado';
+        if (item.status === 'En emisión') statusClass = 'status-emision';
+        if (item.status === 'Próximamente') statusClass = 'status-proximamente';
+        
+        // Generar estrellas según tu CSS
+        const fullStars = Math.floor(item.rating);
+        const halfStar = item.rating % 1 >= 0.5 ? 1 : 0;
+        let starsHTML = '';
+        for (let i = 0; i < fullStars; i++) starsHTML += '<i class="fas fa-star"></i>';
+        if (halfStar) starsHTML += '<i class="fas fa-star-half-alt"></i>';
+        for (let i = 0; i < 5 - fullStars - halfStar; i++) starsHTML += '<i class="far fa-star"></i>';
+        
+        // Crear el HTML según tu estructura CSS
+        card.innerHTML = `
+            <div class="series-poster-container">
+                <img src="${item.poster}" alt="${item.title}" class="series-poster" 
+                     onerror="this.src='${getDefaultPoster()}'">
+                <div class="series-overlay">
+                    <div class="series-status ${statusClass}">${item.status}</div>
+                    ${item.isRealData ? 
+                        '<div style="background: #28a745; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.6rem; margin-top: 5px; color: white;">BD</div>' 
+                        : ''}
+                </div>
+            </div>
+            <div class="series-info">
+                <h3 class="series-title">${item.title}</h3>
+                <div class="series-rating">
+                    <span class="rating-value">${item.rating.toFixed(1)}</span>
+                    <div class="stars">
+                        ${starsHTML}
+                    </div>
+                </div>
+                <div class="series-meta">
+                    <span class="series-year">${item.year}</span>
+                    <span class="series-episodes">${item.episodes} eps</span>
+                </div>
+            </div>
+        `;
+        
+        // Añadir evento click
+        card.addEventListener('click', () => {
+            if (item.id && item.id > 0) {
+                window.location.href = `series-detail.html?id=${item.id}`;
+            }
+        });
+        
+        return card;
+    }
+    
+    function showSuccess(message) {
+        // Crear notificación flotante
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        `;
+        
+        notification.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span style="margin-left: 10px;">${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+        
+        // Añadir animación CSS si no existe
+        if (!document.querySelector('#slideInAnimation')) {
+            const style = document.createElement('style');
+            style.id = 'slideInAnimation';
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+    
+    function showFallbackMessage(text) {
+        const message = document.createElement('div');
+        message.className = 'error-message';
+        message.style.cssText = 'grid-column: 1 / -1; margin: 1rem 0;';
+        message.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <p style="margin: 0.5rem 0;">${text}</p>
+            <small style="color: #999;">Verifica que Spring Boot esté ejecutándose</small>
+        `;
+        
+        const popularContainer = document.getElementById('popularSeries');
+        if (popularContainer) {
+            popularContainer.innerHTML = '';
+            popularContainer.appendChild(message);
+        }
+    }
+    
+    function showInstructions() {
+        const instructions = document.createElement('div');
+        instructions.style.cssText = 'grid-column: 1 / -1; padding: 1.5rem; background: #1a1a1a; border-radius: 8px; margin: 1rem 0;';
+        instructions.innerHTML = `
+            <h4 style="color: #e50914; margin-bottom: 1rem;">
+                <i class="fas fa-info-circle"></i> Base de datos vacía
+            </h4>
+            <p style="color: #ccc; margin-bottom: 1rem;">
+                Para añadir series a PostgreSQL:
+            </p>
+            <ol style="color: #888; margin-left: 1.5rem;">
+                <li>Usa el método <code>crearSerie()</code> en Spring Boot</li>
+                <li>O ejecuta SQL directo en Supabase</li>
+                <li>O usa el endpoint POST <code>/api/series</code></li>
+            </ol>
+        `;
+        
+        const recentContainer = document.getElementById('recentSeries');
+        if (recentContainer) {
+            recentContainer.appendChild(instructions);
+        }
+    }
+    
+    function showFallbackData() {
+        console.log('🔄 Mostrando datos de ejemplo...');
+        
+        const exampleSeries = [
+            {
+                id: 1,
+                title: "Attack on Titan",
+                rating: 4.9,
+                year: 2013,
+                episodes: 87,
+                status: "Finalizado",
+                poster: "https://cdn.myanimelist.net/images/anime/10/47347.jpg",
+                isRealData: false
+            },
+            {
+                id: 2,
+                title: "Breaking Bad",
+                rating: 4.8,
+                year: 2008,
+                episodes: 62,
+                status: "Finalizado",
+                poster: "https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg",
+                isRealData: false
+            },
+            {
+                id: 3,
+                title: "Stranger Things",
+                rating: 4.7,
+                year: 2016,
+                episodes: 34,
+                status: "En emisión",
+                poster: "https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg",
+                isRealData: false
+            }
+        ];
+        
+        // Mostrar 3 series de ejemplo (puedes cambiar a 5 si quieres)
+        displaySeries('popularSeries', exampleSeries, 'Ejemplo');
+        displaySeries('recentSeries', exampleSeries, 'Ejemplo');
+    }
+    
+    // Función para probar conexión manualmente
+    window.testConnection = async function() {
+        try {
+            const response = await fetch(`${BACKEND_URL}/series/test`);
+            const text = await response.text();
+            
+            // Mostrar alerta con información
+            alert(`✅ Spring Boot responde:\n\nStatus: ${response.status}\nMensaje: ${text}\n\nAhora prueba obtener series...`);
+            
+            // Probar obtener series
+            const seriesResponse = await fetch(`${BACKEND_URL}/series`);
+            const seriesData = await seriesResponse.json();
+            
+            const count = Array.isArray(seriesData) ? seriesData.length : 0;
+            alert(`📊 Series en PostgreSQL: ${count}\n\nSi hay series, la página se recargará automáticamente.`);
+            
+            if (count > 0) {
+                // Recargar para mostrar datos reales
+                setTimeout(() => location.reload(), 1000);
+            }
+            
+        } catch (error) {
+            alert(`❌ Error de conexión:\n\n${error.message}\n\nVerifica:\n1. Spring Boot corriendo\n2. Puerto 8080\n3. Terminal sin errores`);
+        }
+    };
+    
+    // Botón flotante para probar conexión
+    const testBtn = document.createElement('button');
+    testBtn.innerHTML = '<i class="fas fa-plug"></i>';
+    testBtn.title = 'Probar conexión Spring Boot';
+    testBtn.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: #e50914;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+        transition: all 0.2s;
+    `;
+    testBtn.onmouseenter = () => {
+        testBtn.style.transform = 'scale(1.1)';
+        testBtn.style.boxShadow = '0 6px 16px rgba(229, 9, 20, 0.5)';
+    };
+    testBtn.onmouseleave = () => {
+        testBtn.style.transform = 'scale(1)';
+        testBtn.style.boxShadow = '0 4px 12px rgba(229, 9, 20, 0.4)';
+    };
+    testBtn.onclick = testConnection;
+    
+    // Añadir botón después de que se cargue el body
+    setTimeout(() => {
+        document.body.appendChild(testBtn);
+    }, 100);
+</script>

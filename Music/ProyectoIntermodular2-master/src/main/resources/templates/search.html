@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeriesBox - Buscar Series</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/series.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilos específicos para la página de búsqueda */
+        .search-hero {
+            background: linear-gradient(135deg, #141414 0%, #1a1a1a 100%);
+            padding: 4rem 0;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+        
+        .search-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            gap: 10px;
+            position: relative;
+        }
+        
+        .search-input-wrapper {
+            position: relative;
+            flex-grow: 1;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 15px 45px 15px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background: #0a0a0a;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #e50914;
+            box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+        }
+        
+        .clear-search-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+            transition: color 0.3s;
+        }
+        
+        .clear-search-btn:hover {
+            color: #e50914;
+        }
+        
+        #searchStatus {
+            background: linear-gradient(135deg, rgba(229, 9, 20, 0.1) 0%, rgba(229, 9, 20, 0.05) 100%);
+            padding: 15px 0;
+            margin: 20px 0;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status-message {
+            text-align: center;
+            color: #e50914;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        #filters {
+            background: #141414;
+            padding: 2rem 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        #filters h3 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .genre-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .genre-tag {
+            padding: 10px 20px;
+            background: #333;
+            border: none;
+            border-radius: 25px;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        
+        .genre-tag:hover {
+            background: #444;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .genre-tag.active {
+            background: linear-gradient(135deg, #e50914 0%, #b50710 100%);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+        }
+        
+        #results {
+            padding: 3rem 0;
+            min-height: 500px;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #333;
+        }
+        
+        .results-header .section-title {
+            color: #fff;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+        
+        .results-count {
+            background: linear-gradient(135deg, #e50914 0%, #b50710 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 8px rgba(229, 9, 20, 0.2);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #e50914;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 5rem 2rem;
+            background: rgba(20, 20, 20, 0.8);
+            border-radius: 15px;
+            border: 2px dashed #333;
+        }
+        
+        .no-results i {
+            font-size: 5rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+        
+        .no-results h3 {
+            color: #ccc;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .no-results p {
+            color: #888;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: rgba(20, 20, 20, 0.9);
+            border-radius: 15px;
+            border: 2px solid #e50914;
+        }
+        
+        .error-message i {
+            font-size: 4rem;
+            color: #e50914;
+            margin-bottom: 1.5rem;
+        }
+        
+        .error-message h3 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .error-message p {
+            color: #ccc;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-hero {
+                padding: 3rem 1rem;
+            }
+            
+            .search-hero h1 {
+                font-size: 2rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-input-wrapper {
+                margin-bottom: 10px;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .results-count {
+                align-self: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">SeriesBox</div>
+            <ul class="nav-links">
+                <li><a href="home.html">Inicio</a></li>
+                <li><a href="search.html" class="active">Buscar</a></li>
+                <li><a href="top-rated.html">Top Rated</a></li>
+                <li><a href="profile.html">Mi Perfil</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <button class="btn btn-secondary" id="logoutBtn">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Section -->
+    <section class="search-hero">
+        <div class="container">
+            <h1>Encuentra tu próxima serie favorita</h1>
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" id="searchInput" 
+                           placeholder="Buscar series por título, género, actor...">
+                    <button class="clear-search-btn" id="clearSearchBtn" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="searchBtn">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </div>
+            <p style="color: #888; margin-top: 15px; font-size: 0.9rem;">
+                <i class="fas fa-lightbulb"></i> Tip: Presiona Enter para buscar rápidamente
+            </p>
+        </div>
+    </section>
+
+    <!-- Status Section -->
+    <section id="searchStatus" class="search-status">
+        <div class="container">
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+    </section>
+
+    <!-- Filter Section -->
+    <section id="filters">
+        <div class="container">
+            <h3><i class="fas fa-filter"></i> Filtrar por género</h3>
+            <div class="genre-filter" id="genreFilter">
+                <!-- Genre tags will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results">
+        <div class="container">
+            <div class="results-header">
+                <h2 class="section-title" id="resultsTitle">Todas las Series</h2>
+                <div class="results-count" id="resultsCount">0 series</div>
+            </div>
+            <div class="series-grid" id="searchResults">
+                <!-- Search results will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="logo">SeriesBox</div>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p class="copyright">© 2023 SeriesBox. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- En la parte final del body, actualiza los scripts: -->
+    <script src="scripts/series.js"></script>
+    <script src="scripts/search.js"></script>
+    <script src="scripts/auth.js"></script>
+
+    <!-- Agrega este script de prueba después: -->
+    <script>
+        // Script de prueba rápido
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Página cargada correctamente');
+            
+            // Verificar que los elementos existen
+            console.log('🔍 Elementos encontrados:');
+            console.log('- searchBtn:', document.getElementById('searchBtn') ? '✅' : '❌');
+            console.log('- searchInput:', document.getElementById('searchInput') ? '✅' : '❌');
+            console.log('- searchResults:', document.getElementById('searchResults') ? '✅' : '❌');
+            
+            // Probar backend automáticamente
+            setTimeout(() => {
+                testBackend().then(data => {
+                    if (data) {
+                        console.log('🎉 ¡Backend funciona correctamente!');
+                    } else {
+                        console.log('⚠️ Usando modo de prueba con datos mock');
+                    }
+                });
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

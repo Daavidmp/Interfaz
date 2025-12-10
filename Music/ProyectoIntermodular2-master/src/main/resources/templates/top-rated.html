@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeriesBox - Top Rated</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/series.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">SeriesBox</div>
+            <ul class="nav-links">
+                <li><a href="home.html">Inicio</a></li>
+                <li><a href="search.html">Buscar</a></li>
+                <li><a href="top-rated.html" class="active">Top Rated</a></li>
+                <li><a href="profile.html">Mi Perfil</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <button class="btn btn-secondary" id="logoutBtn">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero top-rated-hero">
+        <div class="container">
+            <h1>Series Mejor Valoradas</h1>
+            <p>Descubre las series más populares según la comunidad de SeriesBox</p>
+        </div>
+    </section>
+
+    <!-- Top Rated Section -->
+    <section id="top-rated">
+        <div class="container">
+            <h2 class="section-title">Top 20 Series</h2>
+            <div class="top-rated-list" id="topRatedSeries">
+                <!-- Top rated series will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="logo">SeriesBox</div>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p class="copyright">© 2023 SeriesBox. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="scripts/series.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script>
+        // Load top rated series
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTopRatedSeries();
+        });
+    </script>
+</body>
+</html>

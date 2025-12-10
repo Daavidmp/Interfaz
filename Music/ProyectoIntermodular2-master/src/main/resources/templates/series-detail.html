@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeriesBox - Detalle de Serie</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/series.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">SeriesBox</div>
+            <ul class="nav-links">
+                <li><a href="home.html">Inicio</a></li>
+                <li><a href="search.html">Buscar</a></li>
+                <li><a href="top-rated.html">Top Rated</a></li>
+                <li><a href="profile.html">Mi Perfil</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <button class="btn btn-secondary" id="logoutBtn">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Series Detail -->
+    <section class="series-detail">
+        <div class="container">
+            <div class="detail-header">
+                <img src="" alt="Series Poster" class="detail-poster" id="detailPoster">
+                <div class="detail-info">
+                    <h1 class="detail-title" id="detailTitle">Cargando...</h1>
+                    <div class="detail-meta">
+                        <span id="detailYear">-</span>
+                        <span id="detailEpisodes">- Episodios</span>
+                        <span id="detailStatus">-</span>
+                    </div>
+                    <div class="detail-genres" id="detailGenres">
+                        <!-- Genres will be populated by JavaScript -->
+                    </div>
+                    <div class="detail-rating">
+                        <span class="rating-big" id="detailRating">-</span>
+                        <div class="stars" id="detailStars">
+                            <!-- Stars will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="btn trailer-btn" id="trailerBtn">
+                            <i class="fas fa-play"></i> Ver Trailer
+                        </button>
+                        <button class="btn btn-secondary" id="addToListBtn">
+                            <i class="fas fa-plus"></i> Añadir a Lista
+                        </button>
+                    </div>
+                    <div class="synopsis">
+                        <h3>Sinopsis</h3>
+                        <p id="detailSynopsis">Cargando...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rating-section">
+                <h3>Tu valoración</h3>
+                <div class="star-rating" id="starRating">
+                    <i class="far fa-star star" data-rating="1"></i>
+                    <i class="far fa-star star" data-rating="2"></i>
+                    <i class="far fa-star star" data-rating="3"></i>
+                    <i class="far fa-star star" data-rating="4"></i>
+                    <i class="far fa-star star" data-rating="5"></i>
+                </div>
+                <p id="ratingText">No valoraste esta serie aún</p>
+            </div>
+
+            <div class="comments-section">
+                <h3>Comentarios (<span id="commentsCount">0</span>)</h3>
+                <div class="comment-form">
+                    <textarea class="comment-input" placeholder="Comparte tu opinión sobre esta serie..."></textarea>
+                    <button class="btn btn-primary" id="submitComment">Publicar comentario</button>
+                </div>
+                <div class="comments-list" id="commentsList">
+                    <!-- Comments will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trailer Modal -->
+    <div class="modal" id="trailerModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeTrailerModal">&times;</span>
+            <div class="trailer-container">
+                <iframe id="trailerVideo" 
+                        width="100%" 
+                        height="100%" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add to List Modal -->
+    <div class="modal" id="addToListModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeAddToListModal">&times;</span>
+            <h2>Añadir a Lista</h2>
+            <div id="userListsSelection">
+                <!-- User lists for selection will be populated by JavaScript -->
+            </div>
+            <button class="btn btn-primary" id="createNewListFromSeries">Crear Nueva Lista</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="logo">SeriesBox</div>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p class="copyright">© 2023 SeriesBox. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="scripts/series.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script>
+        // Load series detail based on URL parameter
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const seriesId = urlParams.get('id');
+            
+            if (seriesId) {
+                loadSeriesDetail(seriesId);
+            } else {
+                // Redirect to home if no series ID provided
+                window.location.href = 'home.html';
+            }
+        });
+    </script>
+</body>
+</html>

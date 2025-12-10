@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeriesBox - Iniciar Sesión</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilos adicionales para el banner */
+        .auth-page {
+            background: linear-gradient(rgba(15, 15, 15, 0.85), rgba(26, 26, 26, 0.9)),
+                        url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1925&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .auth-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, 
+                rgba(229, 9, 20, 0.15) 0%,
+                rgba(15, 15, 15, 0.95) 70%);
+            z-index: 0;
+        }
+
+        .auth-container {
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(229, 9, 20, 0.2);
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        .auth-header::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #e50914, transparent);
+            border-radius: 2px;
+        }
+
+        .auth-header .logo {
+            font-size: 3rem;
+            color: #e50914;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 10px rgba(229, 9, 20, 0.3);
+        }
+
+        .auth-header p {
+            color: #aaa;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .auth-forms {
+            position: relative;
+        }
+
+        .auth-form h2 {
+            color: #fff;
+            margin-bottom: 1.8rem;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .auth-form h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 2px;
+            background: #e50914;
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.6rem;
+            color: #ddd;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid rgba(68, 68, 68, 0.5);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #e50914;
+            box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+            background: rgba(42, 42, 42, 0.9);
+        }
+
+        .form-input::placeholder {
+            color: #777;
+        }
+
+        .form-submit {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #e50914, #ff4757);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 0.5rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-submit:hover {
+            background: linear-gradient(135deg, #f40612, #ff2d55);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(229, 9, 20, 0.4);
+        }
+
+        .form-submit:active {
+            transform: translateY(0);
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 2rem;
+            color: #888;
+            font-size: 0.95rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(68, 68, 68, 0.3);
+        }
+
+        .auth-switch a {
+            color: #e50914;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .auth-switch a:hover {
+            color: #ff4757;
+            text-decoration: underline;
+        }
+
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .auth-form {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        /* Iconos en los inputs */
+        .form-group i {
+            position: absolute;
+            right: 15px;
+            top: 42px;
+            color: #666;
+            font-size: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .auth-container {
+                margin: 1rem;
+                padding: 2rem;
+                max-width: 100%;
+            }
+            
+            .auth-header .logo {
+                font-size: 2.5rem;
+            }
+            
+            .auth-page {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 1.5rem;
+            }
+            
+            .auth-header .logo {
+                font-size: 2rem;
+            }
+            
+            .form-input {
+                padding: 0.9rem 1rem;
+            }
+        }
+
+        /* Efecto de vidrio esmerilado para móviles */
+        @supports (backdrop-filter: blur(10px)) {
+            .auth-container {
+                background: rgba(26, 26, 26, 0.85);
+                backdrop-filter: blur(15px);
+            }
+        }
+
+        /* Loading effect */
+        .form-submit.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .form-submit.loading::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1 class="logo">SeriesBox</h1>
+            <p>Tu plataforma definitiva de series y anime</p>
+        </div>
+
+        <div class="auth-forms">
+            <!-- Login Form -->
+            <div class="auth-form active" id="loginForm">
+                <h2>Iniciar Sesión</h2>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label class="form-label" for="loginEmail">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" class="form-input" id="loginEmail" placeholder="tu@email.com" required>
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="loginPassword">
+                            <i class="fas fa-lock"></i> Contraseña
+                        </label>
+                        <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" required>
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <button type="submit" class="form-submit" id="loginSubmit">
+                        Iniciar Sesión
+                    </button>
+                </form>
+                <p class="auth-switch">¿No tienes cuenta? <a href="#" id="showRegister">Regístrate aquí</a></p>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="auth-form" id="registerForm">
+                <h2>Registrarse</h2>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <label class="form-label" for="registerEmail">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" class="form-input" id="registerEmail" placeholder="tu@email.com" required>
+                        <i class="fas fa-at"></i>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="registerUsername">
+                            <i class="fas fa-user-circle"></i> Nombre de usuario
+                        </label>
+                        <input type="text" class="form-input" id="registerUsername" placeholder="usuario123" required>
+                        <i class="fas fa-user-tag"></i>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="registerPassword">
+                            <i class="fas fa-lock"></i> Contraseña
+                        </label>
+                        <input type="password" class="form-input" id="registerPassword" placeholder="••••••••" required>
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="registerConfirmPassword">
+                            <i class="fas fa-lock"></i> Confirmar Contraseña
+                        </label>
+                        <input type="password" class="form-input" id="registerConfirmPassword" placeholder="••••••••" required>
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div class="form-group">
+                        <div class="password-strength" id="passwordStrength" style="display: none;">
+                            <div class="strength-bar">
+                                <div class="strength-fill" id="strengthFill"></div>
+                            </div>
+                            <span class="strength-text" id="strengthText"></span>
+                        </div>
+                    </div>
+                    <button type="submit" class="form-submit" id="registerSubmit">
+                        Crear Cuenta
+                    </button>
+                </form>
+                <p class="auth-switch">¿Ya tienes cuenta? <a href="#" id="showLogin">Inicia sesión aquí</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANTES de auth.js -->
+    <!-- En el index.html, añade esto ANTES de auth.js -->
+    <script src="scripts/auth-backend.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script>
+        // Mejoras adicionales para el formulario
+        document.addEventListener('DOMContentLoaded', function() {
+            // Efectos de validación en tiempo real
+            const inputs = document.querySelectorAll('.form-input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.querySelector('.form-label').style.color = '#e50914';
+                });
+                
+                input.addEventListener('blur', function() {
+                    if (!this.value) {
+                        this.parentElement.querySelector('.form-label').style.color = '#ddd';
+                    }
+                });
+            });
+
+            // Indicador de fuerza de contraseña
+            const passwordInput = document.getElementById('registerPassword');
+            const confirmPasswordInput = document.getElementById('registerConfirmPassword');
+            const strengthDiv = document.getElementById('passwordStrength');
+            const strengthFill = document.getElementById('strengthFill');
+            const strengthText = document.getElementById('strengthText');
+            
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    const password = this.value;
+                    if (password.length > 0) {
+                        strengthDiv.style.display = 'block';
+                        const strength = checkPasswordStrength(password);
+                        strengthFill.style.width = strength.percentage + '%';
+                        strengthFill.style.background = strength.color;
+                        strengthText.textContent = strength.text;
+                        strengthText.style.color = strength.color;
+                    } else {
+                        strengthDiv.style.display = 'none';
+                    }
+                    
+                    // Validar coincidencia de contraseñas
+                    if (confirmPasswordInput.value) {
+                        validatePasswordMatch();
+                    }
+                });
+                
+                confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+            }
+            
+            function validatePasswordMatch() {
+                const password = passwordInput.value;
+                const confirm = confirmPasswordInput.value;
+                
+                if (confirm && password !== confirm) {
+                    confirmPasswordInput.style.borderColor = '#dc3545';
+                    confirmPasswordInput.parentElement.querySelector('.form-label').style.color = '#dc3545';
+                } else if (confirm) {
+                    confirmPasswordInput.style.borderColor = '#28a745';
+                    confirmPasswordInput.parentElement.querySelector('.form-label').style.color = '#28a745';
+                }
+            }
+            
+            function checkPasswordStrength(password) {
+                let score = 0;
+                if (password.length >= 8) score++;
+                if (/[A-Z]/.test(password)) score++;
+                if (/[a-z]/.test(password)) score++;
+                if (/[0-9]/.test(password)) score++;
+                if (/[^A-Za-z0-9]/.test(password)) score++;
+                
+                const strengthLevels = [
+                    { percentage: 20, color: '#dc3545', text: 'Débil' },
+                    { percentage: 40, color: '#ffc107', text: 'Regular' },
+                    { percentage: 60, color: '#17a2b8', text: 'Buena' },
+                    { percentage: 80, color: '#28a745', text: 'Fuerte' },
+                    { percentage: 100, color: '#28a745', text: 'Muy fuerte' }
+                ];
+                
+                return strengthLevels[Math.min(score, strengthLevels.length - 1)];
+            }
+            
+            // Añadir estilos para la barra de fuerza
+            const style = document.createElement('style');
+            style.textContent = `
+                .password-strength {
+                    margin-top: 10px;
+                }
+                .strength-bar {
+                    height: 5px;
+                    background: #333;
+                    border-radius: 3px;
+                    overflow: hidden;
+                    margin-bottom: 5px;
+                }
+                .strength-fill {
+                    height: 100%;
+                    width: 0%;
+                    transition: width 0.3s, background 0.3s;
+                    border-radius: 3px;
+                }
+                .strength-text {
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+        function onLoginSuccess(userData) {
+    // Guardar en seriesbox_user para compatibilidad
+        localStorage.setItem('seriesbox_user', JSON.stringify(userData));
+        
+        // También guardar en currentUser por si acaso
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        
+        // Redirigir
+        window.location.href = 'home.html';
+    }
+    </script>
+</body>
+</html>
